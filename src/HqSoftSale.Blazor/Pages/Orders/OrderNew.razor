@@ -1,0 +1,177 @@
+﻿@page "/orders/new"
+
+@using HqSoftSale.Orders;
+@using HqSoftSale.Localization;
+@using Microsoft.Extensions.Localization;
+@using Volo.Abp.Application.Dtos;
+@using Volo.Abp.AspNetCore.Components.Web;
+
+@inherits AbpCrudPageBase<IOrderAppService, OrderDto, Guid, PagedAndSortedResultRequestDto, CreateUpdateOrderDto>
+@inject IStringLocalizer<HqSoftSaleResource> L
+@inject AbpBlazorMessageLocalizerHelper<HqSoftSaleResource> LH
+@inject IOrderAppService OrderAppService
+@inject NavigationManager NavigationManager
+
+
+
+<Row Spacing="2" xs="1">
+    <Span />
+    <Column>
+    </Column>
+    <Column>
+    </Column>
+    <Column>
+    </Column>
+    <Column Style="padding:10px 10px 10px 120px">
+      
+        <Button Style="border-style: double;border-color: #c7c7c7;">
+            <Icon Name="IconName.List" Clicked="@((a)=>HideFilterBy())" />
+        </Button>
+        <Button Style="border-style: double;border-color: #c7c7c7;">
+            <Icon Name="IconName.LocationArrow" />
+        </Button>
+        <Button Style="color: #fff; background-color: #a46363;" Clicked="(()=>GoToOrderPage())">
+            <Icon Name="IconName.Undo" /> @L["Back"]
+        </Button>
+        <Button Color="Color.Primary" Clicked="CreateEntityAsync">
+            <Icon Name="IconName.Save" IconStyle="IconStyle.Regular" /> @L["Save"]
+        </Button>
+    </Column>
+</Row>
+<Row>
+    <Column style="@($"width:{(_hideItem ? "100%" : "75%")};")">
+        <Card>
+            <CardBody>
+                @*Filter*@
+                <Validations @ref="@CreateValationRef" Model="@NewEntity" ValidateOnLoad="false">
+                    <Row Style="padding-bottom:15px">
+                  
+                        <Column ColumnSize="ColumnSize.Is4">
+                            <Text>Order Number</Text>
+                            <Field>
+                                <TextEdit Placeholder="00000X" @bind-Text="@NewEntity.OrderNumber" />
+                            </Field>
+                        </Column>
+
+                
+                        <Column ColumnSize="ColumnSize.Is4">
+                            <Text>Status</Text>
+                            <Select TValue="OrderStatus" @bind-SelectedValue="@NewEntity.OrderStatus">
+                                @foreach (var order in Enum.GetValues(typeof(OrderStatus)))
+                                {
+                                    <SelectItem Value="@((OrderStatus)order)">
+                                        @L[$"Enum:OrderStatus.{order}"]
+                                    </SelectItem>
+                                }
+                            </Select>
+                        </Column>
+                       
+                    </Row>
+
+                 
+     
+                    <Row>
+                         
+                        <Column>
+                            <Tabs SelectedTab="order">
+                              @*  <Items>
+                                    <Tab Name="order">Order/InvoiceInformation</Tab>
+                                    <Tab Name="shipping">Shipping Info</Tab>
+                                    <Tab Name="address">Address</Tab>
+                                    <Tab Name="taxt">Taxt Information</Tab>
+                                    <Tab Name="discount">Discount Information</Tab>
+                                </Items>*@
+                                
+                                <Content>
+                                    <TabPanel Name="order">
+                                   
+                                        <Row Style="padding-bottom:15px">
+                                            <Column ColumnSize="ColumnSize.Is4">
+                                                <Text>Order Date</Text>
+                                                <Field>
+                                                    <DateEdit TValue="DateTime" @bind-Date="NewEntity.OrderDate" />
+                                                </Field>
+                                            </Column>
+                                           
+                                            <Column ColumnSize="ColumnSize.Is4">
+                                                <Column ColumnSize="ColumnSize.Is4">
+                                                    <Text>Customer </Text>
+                                                    <Field>
+                                                        <TextEdit Placeholder="Customer1" @bind-Text="@NewEntity.Customer" />
+                                                    </Field>
+                                                </Column>
+                                            </Column>
+                                        </Row>
+
+                                        @*Row 5*@
+                                    </TabPanel>
+                                </Content>
+                            </Tabs>
+                        </Column>
+                    </Row>
+                </Validations>
+                  <DataGrid TItem="Employee"
+                          Data="@employeeList"
+                          Editable
+                          EditMode="DataGridEditMode.Inline"
+                          Responsive
+                          ShowPager>
+                    <DataGridCommandColumn />
+                    <DataGridColumn Field="@nameof( Employee.Salary )" Caption="Salary" Editable DisplayFormat="{0:C}" DisplayFormatProvider="@System.Globalization.CultureInfo.GetCultureInfo("fr-FR")">
+                        <EditTemplate>
+                            <NumericEdit TValue="decimal"
+                                         Value="@((decimal)context.CellValue)"
+                                         ValueChanged="@( v => {
+                            context.CellValue = v;
+                            context.UpdateCell( nameof( Employee.Tax ), v * 2  );
+                         })" />
+                        </EditTemplate>
+                    </DataGridColumn>
+                    <DataGridColumn Field="@nameof( Employee.Tax )" Caption="Tax" Editable DisplayFormat="{0:C}" DisplayFormatProvider="@System.Globalization.CultureInfo.GetCultureInfo("fr-FR")">
+                        <EditTemplate>
+                            <NumericEdit TValue="decimal"
+                                         Value="@((decimal)context.CellValue)"
+                                              Disabled />
+                        </EditTemplate>
+                    </DataGridColumn>
+                </DataGrid>
+
+            </CardBody>
+        </Card>
+    </Column>
+</Row>
+
+<Row Style="margin-top:20px">
+
+    <DataGrid TItem="OrderDto"
+              Data="Entities"
+              ReadData="OnDataGridReadAsync"
+              TotalItems="TotalCount"
+              ShowPager="true"
+              PageSize="PageSize">
+        <DataGridColumns>
+            <DataGridColumn Field="@nameof(OrderDto.Id)" Caption="#" Sortable="false" />
+            <DataGridColumn TItem="OrderDto"
+                            Field="@nameof(OrderDto.OrderNumber)"
+                            Caption="@L["OrderNumber"]">            
+            </DataGridColumn>
+
+            <DataGridColumn Field="@nameof(OrderDto.OrderStatus)" Caption="@L["Order Status"]">
+            </DataGridColumn> 
+            
+            <DataGridColumn TItem="OrderDto"
+                            Field="@nameof(OrderDto.OrderDate)"
+                            Caption="@L["OrderDate"]">
+                <DisplayTemplate>
+                    @context.CreationTime.ToShortDateString()
+                </DisplayTemplate>
+            </DataGridColumn>
+
+            <DataGridColumn TItem="OrderDto"
+                            Field="@nameof(OrderDto.Customer)"
+                            Caption="@L["CustomerID"]">
+            </DataGridColumn>
+        </DataGridColumns>
+    </DataGrid>
+
+</Row>

@@ -1,0 +1,211 @@
+﻿@page "/products/new"
+
+@using HqSoftSale.Products;
+@using HqSoftSale.Localization;
+@using Microsoft.Extensions.Localization;
+@using Volo.Abp.Application.Dtos;
+@using Volo.Abp.AspNetCore.Components.Web;
+
+@inherits AbpCrudPageBase<IProductAppService, ProductDto, Guid, PagedAndSortedResultRequestDto, CreateUpdateProductDto>
+@inject IStringLocalizer<HqSoftSaleResource> L
+@inject AbpBlazorMessageLocalizerHelper<HqSoftSaleResource> LH
+@inject IProductAppService ProductAppService
+@inject NavigationManager NavigationManager
+
+
+
+<Row Spacing="2" xs="1">
+    <Span />
+    <Column>
+    </Column>
+    <Column>
+    </Column>
+    <Column>
+    </Column>
+    <Column Style="padding:10px 10px 10px 120px">
+      
+
+        <Button Style="border-style: double;border-color: #c7c7c7;">
+            <Icon Name="IconName.List" Clicked="@((a)=>HideFilterBy())" />
+        </Button>
+        <Button Style="border-style: double;border-color: #c7c7c7;">
+            <Icon Name="IconName.LocationArrow" />
+        </Button>
+        <Button Style="color: #fff; background-color: #a46363;" Clicked="(()=>GoToProductPage())">
+            <Icon Name="IconName.Undo" /> @L["Back"]
+        </Button>
+        <Button Color="Color.Primary" Clicked="CreateEntityAsync">
+            <Icon Name="IconName.Save" IconStyle="IconStyle.Regular" /> @L["Save"]
+        </Button>
+    </Column>
+</Row>
+<Row>
+   
+        <Card>
+            <CardBody>
+                @*Filter*@
+                <Validations @ref="@CreateValationRef" Model="@NewEntity" ValidateOnLoad="false">
+                    <Row Style="padding-bottom:15px">
+
+                        <Column ColumnSize="ColumnSize.Is4">
+                            <Text>ProductID</Text>
+                            <Field>
+                                <TextEdit Placeholder="PX" @bind-Text="@NewEntity.ProductID" />
+                            </Field>
+                        </Column>
+                    <Column ColumnSize="ColumnSize.Is4">
+                        <Text>ProductName</Text>
+                        <Field>
+                            <TextEdit Placeholder="Product 1" @bind-Text="@NewEntity.ProductName" />
+                        </Field>
+                    </Column>
+
+                        <Column ColumnSize="ColumnSize.Is4">
+                        <Text>WarehouseType</Text>
+                            <Select TValue="WarehouseType" @bind-SelectedValue="@NewEntity.Type">
+                            @foreach (var product in Enum.GetValues(typeof(WarehouseType)))
+                                {
+                                    <SelectItem Value="@((WarehouseType)product)">
+                                    @L[$"Enum:WarehouseType.{product}"]
+                                    </SelectItem>
+                                }
+                            </Select>
+                        </Column>
+                        </Row>
+                <Row Style="padding-bottom:15px">
+                    <Column ColumnSize="ColumnSize.Is4">
+                        <Text>UnitType</Text>
+                        <Select TValue="UnitType" @bind-SelectedValue="@NewEntity.UnitType">
+                            @foreach (var product in Enum.GetValues(typeof(UnitType)))
+                            {
+                                <SelectItem Value="@((UnitType)product)">
+                                    @L[$"Enum:UnitType.{product}"]
+                                </SelectItem>
+                            }
+                        </Select>
+                    </Column>
+                    <Column ColumnSize="ColumnSize.Is4">
+                        <Text>Quanity </Text>
+                        <Field>
+                            <NumericPicker Placeholder="" @bind-Value="@NewEntity.Quanity" />
+                        </Field>
+                    </Column>
+
+
+                    <Column ColumnSize="ColumnSize.Is4">
+                        <Text>Price</Text>
+                        <Field>
+                            <NumericPicker TValue="Double" @bind-Value="@NewEntity.Price" />
+                        </Field>
+                    </Column>
+
+
+
+                </Row>
+
+                <Column ColumnSize="ColumnSize.Is4">
+                    <Text>ExtenedAmount</Text>
+                    <Field>
+                        <NumericPicker TValue="Double" @bind-Value="@NewEntity.ExtenedAmount" />
+                    </Field>
+                </Column>
+                 
+                </Validations>
+            </CardBody>
+        </Card>
+ 
+</Row>
+
+<Row Style="margin-top:20px">
+
+    <DataGrid TItem="ProductDto"
+              Data="Entities"
+              ReadData="OnDataGridReadAsync"
+              TotalItems="TotalCount"
+              ShowPager="true"
+              PageSize="PageSize">
+        <DataGridColumns>
+            <DataGridColumn Field="@nameof(ProductDto.Id)" Caption="#" Sortable="false" />
+            <DataGridColumn TItem="ProductDto"
+                            Field="@nameof(ProductDto.ProductID)"
+                            Caption="@L["ProductID"]">
+            </DataGridColumn>
+
+          
+            <DataGridColumn TItem="ProductDto"
+                            Field="@nameof(ProductDto.ProductName)"
+                            Caption="@L["ProductName"]">
+            </DataGridColumn>
+            <DataGridColumn Field="@nameof(ProductDto.UnitType)" Caption="@L["UnitType"]">
+
+            </DataGridColumn>
+
+            <DataGridColumn Field="@nameof(ProductDto.Type)" Caption="@L["Type"]">
+
+            </DataGridColumn>
+
+            <DataGridColumn TItem="ProductDto"
+                            Field="@nameof(ProductDto.Quanity)"
+                            Caption="@L["Quanity"]">
+            </DataGridColumn>
+
+            <DataGridColumn TItem="ProductDto"
+                            Field="@nameof(ProductDto.Price)"
+                            Caption="@L["Price"]">
+            </DataGridColumn>
+            
+            <DataGridColumn TItem="ProductDto"
+                            Field="@nameof(ProductDto.ExtenedAmount)"
+                            Caption="@L["ExtenedAmount"]">
+            </DataGridColumn>
+       
+
+        </DataGridColumns>
+    </DataGrid>
+</Row>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

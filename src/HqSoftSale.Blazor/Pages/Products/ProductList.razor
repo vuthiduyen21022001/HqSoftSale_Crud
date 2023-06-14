@@ -1,0 +1,149 @@
+﻿@page "/products"
+@using HqSoftSale.Products
+@using Volo.Abp.Application.Dtos
+@using Volo.Abp.AspNetCore.Components.Web
+@using System.Net.Http.Json
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Layout
+@using Volo.Abp.AspNetCore.Components.Web.Theming.PageToolbars
+@using Volo.Abp.MultiTenancy
+@using HqSoftSale.Localization
+@using Microsoft.Extensions.Localization
+@inject IProductAppService ProductAppService
+@inject HttpClient httpClient
+@inject NavigationManager NavigationManager
+@inject IStringLocalizer<HqSoftSaleResource> L
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inherits AbpCrudPageBase<IProductAppService, ProductDto, Guid, PagedAndSortedResultRequestDto, CreateUpdateProductDto>
+
+<pageheader breadcrumbitems="breadcrumbitems">
+    <p></p>
+</pageheader>
+<Row>
+    <Column style="@($"display:{(_hideItem ? "none" : "block")}; max-width:15%")">
+        <HqSoftSale.Blazor.Components.FilterBy />
+    </Column>
+    <Column style="@($"width:{(_hideItem ? "100%" : "75%")};")">
+        <Card>
+            <CardBody>
+                <Row Style="padding-bottom:15px">
+                    <Column ColumnSize="ColumnSize.Is2">
+                        <Text TextWeight="TextWeight.Bold" Style="font-size: 20px">Product </Text>
+                    </Column>
+                    <Column ColumnSize="ColumnSize.Is2">
+                    </Column>
+                    <Column ColumnSize="ColumnSize.Is2">
+                    </Column>
+                    <Column ColumnSize="ColumnSize.Is2">
+                    </Column>
+                    <Column ColumnSize="ColumnSize.Is2">
+                    </Column>
+                    
+@*                    <Column ColumnSize="ColumnSize.Is4" style="@($"padding-left:{(_hideItem ? "21rem" : "17rem")};padding-top: 23px;")">*@
+                     <Column Style="padding:10px 10px 10px 120px">
+                        <Button Outline Clicked="@((a)=>HideFilterBy())" Style="border-style: double;border-color: #e0e0e0;">
+                            <Icon Name="IconName.List" />
+                        </Button>
+                        <Button Outline Style="border-style: double;border-color: #e0e0e0;">
+                            <Icon Name="IconName.LocationArrow" />
+                        </Button> 
+                        <Button Color="Color.Secondary" Clicked="(()=>DeleteSelectedRows())">
+                            <Icon Name="IconName.Delete" /> @L["Delete"]
+                        </Button>
+                        <Button Color="Color.Primary" Clicked="((e)=>GoToCreatePage())">
+                            <Icon Name="IconName.Add" /> @L["New"]
+                        </Button>
+                   
+                        </Column>
+                 </Row>
+
+                      
+                   
+                @*Content*@
+
+                <DataGrid TItem="ProductDto"
+                          Data="@productsList"
+                          CustomFilter="@OnCustomFilter"
+                          SortMode="DataGridSortMode.Single"
+                          SelectionMode="DataGridSelectionMode.Multiple"
+                          Striped
+                          Sortable
+                          ShowPager
+                          Responsive
+                          SelectedRows="@selectedRows">
+                    <DataGridColumns>
+                        <DataGridMultiSelectColumn TItem="ProductDto" Width="30px">
+                            <DisplayTemplate>
+                                <input type="checkbox" @bind="context.IsSelected" />
+                            </DisplayTemplate>
+                        </DataGridMultiSelectColumn>
+                        <DataGridCommandColumn />
+                        <DataGridColumn Field="@nameof(ProductDto.ProductID)" Caption="@L["ProductID"]" Context="product">
+                            <DisplayTemplate>
+                                <Link Underline="Underline.Always" Clicked="@(() => GoToEditPage(product))">@product.ProductID</Link>
+                            </DisplayTemplate>
+                        </DataGridColumn>
+
+                        <DataGridCommandColumn />
+                        <DataGridColumn Field="@nameof(ProductDto.ProductName)" Caption="@L["ProductName"]" Context="product">
+                            <DisplayTemplate>
+                                <Link Underline="Underline.Always" Clicked="@(() => GoToEditPage(product))">@product.ProductName</Link>
+                            </DisplayTemplate>
+                        </DataGridColumn>
+
+                        <DataGridColumn TItem="ProductDto" Field="@nameof(ProductDto.Type)" Caption="Type" Editable="true" />
+
+                        <DataGridColumn Field="@nameof(ProductDto.UnitType)" Caption="@L["UnitType"]">
+                            <DisplayTemplate>
+                                @if (context.UnitType == UnitType.THUNG)
+                                {
+                                    <Badge Style="color: #F5BE4E; background-color: #FFF9EF">@context.UnitType</Badge>
+                                }
+                                else if (context.UnitType == UnitType.Cai)
+                                {
+                                    <Badge Style="color: #5FB0E7; background-color: #D8E9F5">@context.UnitType</Badge>
+                                }
+                            </DisplayTemplate>
+                      </DataGridColumn>
+
+                      
+                        <DataGridColumn Field="@nameof(ProductDto.Quanity)" Caption="@L["Quanity"]" Context="product">
+                            <DisplayTemplate>
+                                <Link Underline="Underline.Always" Clicked="@(() => GoToEditPage(product))">@product.Quanity</Link>
+                            </DisplayTemplate>
+                        </DataGridColumn>
+
+                       
+                        <DataGridColumn Field="@nameof(ProductDto.Price)" Caption="@L["Price"]" Context="product">
+                            <DisplayTemplate>
+                                <Link Underline="Underline.Always" Clicked="@(() => GoToEditPage(product))">@product.Price</Link>
+                            </DisplayTemplate>
+                        </DataGridColumn>
+
+                    
+                        <DataGridColumn Field="@nameof(ProductDto.ExtenedAmount)" Caption="@L["ExtenedAmount"]" Context="product">
+                            <DisplayTemplate>
+                                <Link Underline="Underline.Always" Clicked="@(() => GoToEditPage(product))">@product.ExtenedAmount</Link>
+                            </DisplayTemplate>
+                        </DataGridColumn>
+
+                       
+                @*    <pagebuttontemplate>
+                        <span textcolor="textcolor.success">
+                            @context.pagenumber
+                        </span>
+                    </pagebuttontemplate>
+                    <pagesizestemplate>
+                        <select textcolor="textcolor.success" @bind-selectedvalue="@context.currentpagesize" size="size.small">
+                            @foreach (var curpagesize in context.pagesizes)
+                            {
+                                <selectitem value="@curpagesize">@curpagesize</selectitem>
+                            }
+                        </select>
+                    </pagesizestemplate>
+*@
+                       </DataGridColumns>
+                </DataGrid>
+            </CardBody>
+        </Card>
+    </Column>
+</Row>
