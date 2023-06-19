@@ -7,14 +7,16 @@ using Volo.Abp.Domain.Entities.Auditing;
 
 namespace HqSoftSale.Orders
 {
-    public class Order: FullAuditedAggregateRoot<Guid>
+    public class Order : FullAuditedAggregateRoot<Guid>
     {
         public string? OrderNumber { get; set; }
         public DateTime OrderDate { get; set; }
-   
+
         public string? Customer { get; set; }
-   
+
         public OrderStatus OrderStatus { get; set; }
+        //public int Quantity { get; set; }
+        //public double ExtenedAmount { get; set; }
 
     }
 }

@@ -1,4 +1,8 @@
-﻿using System;
+﻿using HqSoftSale.OrderDetails;
+using HqSoftSale.Products;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 
@@ -11,5 +15,7 @@ public interface IOrderAppService :
         PagedAndSortedResultRequestDto, //Used for paging/sorting
         CreateUpdateOrderDto> //Used to create/update a book
 {
-
+    Task<string?> GenerateOrderIdAsync();
+    Task<List<ProductDto>> GetProductsByOrderDetail(string orderId);
+    Task<Guid> CreateOrderAndOrderDetails(CreateUpdateOrderDto orderDto, CreateUpdateOrderDetailDto orderDetailDto);
 }

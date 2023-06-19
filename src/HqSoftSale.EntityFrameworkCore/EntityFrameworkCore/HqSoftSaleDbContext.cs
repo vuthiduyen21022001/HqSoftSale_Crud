@@ -107,9 +107,8 @@ public class HqSoftSaleDbContext :
             b.ToTable(HqSoftSaleConsts.DbTablePrefix + "OrderDetails",
                 HqSoftSaleConsts.DbSchema);
             b.ConfigureByConvention(); //auto configure for the base class props
-            b.Property(x => x.SKU).IsRequired().HasMaxLength(128);
             // ADD THE MAPPING FOR THE RELATION
-            b.HasKey(x => new { x.ProductID, x.OrderID });
+            b.HasKey(x => new { x.Id });
         });
     }
 }

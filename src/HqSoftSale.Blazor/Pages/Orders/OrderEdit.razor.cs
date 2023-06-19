@@ -10,6 +10,7 @@ using Blazorise.DataGrid;
 using HqSoftSale.Orders;
 using HqSoftSale.Products;
 using Volo.Abp.ObjectMapping;
+using HqSoftSale.OrderDetails;
 
 namespace HqSoftSale.Blazor.Pages.Orders
 {
@@ -17,13 +18,21 @@ namespace HqSoftSale.Blazor.Pages.Orders
     {
         protected CreateUpdateOrderDto EditingEntity = new();
         protected Validations EditValidationsRef;
+        private List<OrderDetailDto> selectedRows = new List<OrderDetailDto>();
 
+        private IReadOnlyList<OrderDetailDto> OrderDetailList { get; set; }
+       
         [Parameter]
         public string Id { get; set; }
         public Guid EditingEntityId { get; set; }
 
         protected override async Task OnInitializedAsync()
         {
+            await base.OnInitializedAsync();
+          
+
+          
+            await GetOrderDettailAsync();
             await SetPermissionsAsync();
             await GetProductAsync();
 
@@ -38,6 +47,21 @@ namespace HqSoftSale.Blazor.Pages.Orders
             {
                 await EditValidationsRef.ClearAll();
             }
+        }
+
+        private async Task GetOrderDettailAsync()
+        {
+            var result = await OrderDetailAppService.GetListAsync(
+                new GetOrderDetailListDto
+                {
+                    MaxResultCount = PageSize,
+                    SkipCount = CurrentPage * PageSize,
+                    Sorting = CurrentSorting
+                }
+            );
+
+            OrderDetailList = result.Items;
+            TotalCount = (int)result.TotalCount;
         }
 
         protected virtual async Task UpdateEntityAsync()

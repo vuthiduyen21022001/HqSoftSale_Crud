@@ -1,4 +1,6 @@
 ﻿@page "/orders/edit/{Id}"
+@using Blazorise.Components
+@using HqSoftSale.OrderDetails;
 @using HqSoftSale.Products
 @using HqSoftSale.Orders
 @using Volo.Abp.Application.Dtos
@@ -10,6 +12,7 @@
 @inject IProductAppService ProductAppService
 @inject HttpClient httpClient
 @inject IOrderAppService OrderAppService
+@inject IOrderDetailAppService OrderDetailAppService
 @inject NavigationManager NavigationManager
 @inject IStringLocalizer<HqSoftSaleResource> L
 @inject AbpBlazorMessageLocalizerHelper<HqSoftSaleResource> LH
@@ -109,28 +112,53 @@
                                                 </Field>
                                             </Column>
                                         </Row>
-                                    
 
-                                        @*Content*@
-
-                                        <DataGrid TItem="ProductDto"
-                                                  Data="@ProductList"
+                                        <DataGrid TItem="OrderDetailDto"
+                                                  Data="@OrderDetailList"
                                                   SortMode="DataGridSortMode.Single"
                                                   SelectionMode="DataGridSelectionMode.Multiple"
                                                     Striped
                                                     Sortable
                                                     ShowPager
-                                                    Responsive>
+                                                    Responsive
+                                                  SelectedRows="@selectedRows">
                                             <DataGridColumns>
-                                                <DataGridMultiSelectColumn TItem="ProductDto" Width="30px"></DataGridMultiSelectColumn>
+
                                                 <DataGridCommandColumn />
-                                                <DataGridColumn Field="@nameof(ProductDto.ProductID)" Caption="Product ID" />
-                                                <DataGridColumn Field="@nameof(ProductDto.ProductName)" Caption="Product Name" />
-                                                <DataGridColumn Field="@nameof(ProductDto.Type)" Caption="Type" />
-                                                <DataGridColumn Field="@nameof(ProductDto.UnitType)" Caption="UnitType"/>
-                                                <DataGridColumn Field="@nameof(ProductDto.Quanity)" Caption="Quanity" />
-                                                <DataGridColumn Field="@nameof(ProductDto.Price)" Caption="Price" />
-                                                <DataGridColumn Field="@nameof(ProductDto.ExtenedAmount)" Caption="ExtenedAmount" />
+
+                                                <DataGridMultiSelectColumn TItem="OrderDetailDto" Width="30px">
+                                                    <DisplayTemplate>
+                                                        <input type="checkbox" @bind="context.IsSelected" />
+                                                    </DisplayTemplate>
+                                                </DataGridMultiSelectColumn>
+                                                <DataGridColumn Field="@nameof(OrderDetailDto.ProductID)" Caption="@L["Product id"]" Context="order">
+                                                    <DisplayTemplate>
+                                                        <Link Underline="Underline.Always">@order.ProductID</Link>
+                                                    </DisplayTemplate>
+                                                </DataGridColumn>
+                                                <DataGridColumn Field="@nameof(OrderDetailDto.ProductName)" Caption="Product Name" />
+                                                <DataGridColumn Field="@nameof(OrderDetailDto.UnitType)" Caption="UnitType" Context="order" />
+                                                <DataGridColumn Field="@nameof(OrderDetailDto.Type)" Caption="WarehouseType" Context="order" />
+
+                                                <DataGridColumn Field="@nameof(OrderDetailDto.Quantity)" Caption="Quantity" />
+                                                <DataGridColumn Field="@nameof(OrderDetailDto.Price)" Caption="Product Price" />
+                                                <DataGridColumn Field="@nameof(OrderDetailDto.ExAmount)" Caption="ExtenedAmount" />
+
+                                                <DataGridColumn Field="@nameof(OrderDetailDto.Quantity)" Caption="Quantity">
+                                                    <EditTemplate>
+                                                        <NumericPicker TValue="int" @bind-Value="@context.Item.Quantity"></NumericPicker>
+                                                    </EditTemplate>
+                                                </DataGridColumn>
+                                                <DataGridColumn Field="@nameof(OrderDetailDto.Price)" Caption="Price">
+                                                    <EditTemplate>
+                                                        <NumericPicker TValue="double" @bind-Value="@context.Item.Price"></NumericPicker>
+                                                    </EditTemplate>
+                                                </DataGridColumn>
+                                                <DataGridColumn Field="@nameof(OrderDetailDto.ExAmount)" Caption="ExtenedAmount">
+                                                    <EditTemplate>
+                                                        <NumericPicker TValue="double" @bind-Value="@context.Item.ExAmount"></NumericPicker>
+                                                    </EditTemplate>
+                                                </DataGridColumn>
 
                                             </DataGridColumns>
                                             <PageButtonTemplate>
@@ -147,6 +175,10 @@
                                                 </Select>
                                             </PageSizesTemplate>
                                         </DataGrid>
+
+
+                                           
+                                        
                                     </TabPanel>
                                     <TabPanel Name="shipping">
                                         Content for profile.

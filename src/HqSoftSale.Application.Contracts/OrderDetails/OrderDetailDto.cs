@@ -1,15 +1,12 @@
 ﻿using HqSoftSale.Products;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using Volo.Abp.Domain.Entities;
-using Volo.Abp.Domain.Entities.Auditing;
+using Volo.Abp.Application.Dtos;
 
-namespace HqSoftSale.Orders
+namespace HqSoftSale.OrderDetails
 {
-    public class OrderDetail : FullAuditedAggregateRoot<Guid>
+    public class OrderDetailDto : AuditedEntityDto<Guid>
     {
         public string OrderID { get; set; }
         public string ProductID { get; set; }
@@ -19,5 +16,6 @@ namespace HqSoftSale.Orders
         public int Quantity { get; set; }
         public double Price { get; set; }
         public double ExAmount { get; set; }
+        public bool IsSelected { get; set; }
     }
 }

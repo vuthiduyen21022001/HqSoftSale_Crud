@@ -1,7 +1,10 @@
 ﻿@page "/orders/new"
 
+@using Blazorise.Components
 @using HqSoftSale.Orders;
+\@using HqSoftSale.OrderDetails;
 @using HqSoftSale.Localization;
+@using HqSoftSale.Products;
 @using Microsoft.Extensions.Localization;
 @using Volo.Abp.Application.Dtos;
 @using Volo.Abp.AspNetCore.Components.Web;
@@ -10,7 +13,9 @@
 @inject IStringLocalizer<HqSoftSaleResource> L
 @inject AbpBlazorMessageLocalizerHelper<HqSoftSaleResource> LH
 @inject IOrderAppService OrderAppService
+@inject IOrderDetailAppService OrderDetailAppService
 @inject NavigationManager NavigationManager
+@inject IProductAppService ProductAppService
 
 
 
@@ -24,22 +29,14 @@
     </Column>
     <Column Style="padding:10px 10px 10px 120px">
       
-        <Button Style="border-style: double;border-color: #c7c7c7;">
-            <Icon Name="IconName.List" Clicked="@((a)=>HideFilterBy())" />
-        </Button>
-        <Button Style="border-style: double;border-color: #c7c7c7;">
-            <Icon Name="IconName.LocationArrow" />
-        </Button>
-        <Button Style="color: #fff; background-color: #a46363;" Clicked="(()=>GoToOrderPage())">
-            <Icon Name="IconName.Undo" /> @L["Back"]
-        </Button>
+   
         <Button Color="Color.Primary" Clicked="CreateEntityAsync">
             <Icon Name="IconName.Save" IconStyle="IconStyle.Regular" /> @L["Save"]
         </Button>
     </Column>
 </Row>
 <Row>
-    <Column style="@($"width:{(_hideItem ? "100%" : "75%")};")">
+    <Column >
         <Card>
             <CardBody>
                 @*Filter*@
@@ -49,7 +46,7 @@
                         <Column ColumnSize="ColumnSize.Is4">
                             <Text>Order Number</Text>
                             <Field>
-                                <TextEdit Placeholder="00000X" @bind-Text="@NewEntity.OrderNumber" />
+                                <TextEdit Placeholder="" @bind-Text="@NewEntity.OrderNumber" />
                             </Field>
                         </Column>
 
@@ -110,31 +107,8 @@
                         </Column>
                     </Row>
                 </Validations>
-                  <DataGrid TItem="Employee"
-                          Data="@employeeList"
-                          Editable
-                          EditMode="DataGridEditMode.Inline"
-                          Responsive
-                          ShowPager>
-                    <DataGridCommandColumn />
-                    <DataGridColumn Field="@nameof( Employee.Salary )" Caption="Salary" Editable DisplayFormat="{0:C}" DisplayFormatProvider="@System.Globalization.CultureInfo.GetCultureInfo("fr-FR")">
-                        <EditTemplate>
-                            <NumericEdit TValue="decimal"
-                                         Value="@((decimal)context.CellValue)"
-                                         ValueChanged="@( v => {
-                            context.CellValue = v;
-                            context.UpdateCell( nameof( Employee.Tax ), v * 2  );
-                         })" />
-                        </EditTemplate>
-                    </DataGridColumn>
-                    <DataGridColumn Field="@nameof( Employee.Tax )" Caption="Tax" Editable DisplayFormat="{0:C}" DisplayFormatProvider="@System.Globalization.CultureInfo.GetCultureInfo("fr-FR")">
-                        <EditTemplate>
-                            <NumericEdit TValue="decimal"
-                                         Value="@((decimal)context.CellValue)"
-                                              Disabled />
-                        </EditTemplate>
-                    </DataGridColumn>
-                </DataGrid>
+               
+                 
 
             </CardBody>
         </Card>
@@ -175,3 +149,162 @@
     </DataGrid>
 
 </Row>
+@*<Validations @ref="@CreateValationRef" Model="@NewDetailEntity" ValidateOnLoad="false">
+    <DataGrid TItem="OrderDetailDto"
+              Editable
+              ShowPager
+              EditMode="DataGridEditMode.Inline"
+              CommandMode="DataGridCommandMode.ButtonRow">
+        <DataGridColumns>
+            <DataGridColumn Caption="#">
+            </DataGridColumn>
+            <DataGridColumn Field="@nameof(NewDetailEntity.OrderID)" Caption="@L["Order ID"]">
+                <DisplayTemplate>
+                    <TextEdit @bind-Text="@NewDetailEntity.OrderID" Disabled />
+                </DisplayTemplate>
+            </DataGridColumn>
+            <DataGridColumn Field="@nameof(NewDetailEntity.ProductID)" Caption="@L["Product ID"]">
+                <DisplayTemplate>
+                    <TextEdit @bind-Text="@NewDetailEntity.ProductID" Disabled />
+                </DisplayTemplate>
+            </DataGridColumn>
+            <DataGridColumn Field="@nameof(NewDetailEntity.ProductName)" Caption="@L["Product Name"]" Editable>
+                <EditTemplate>
+                    <Autocomplete TItem="ProductDto"
+                                  TValue="string"
+                                  Data="@products"
+                                  TextField="@((item) => item?.ProductName)"
+                                  ValueField="@((item) => item?.ProductID)"
+                                  Placeholder="Search..."
+                                  Filter="AutocompleteFilter.StartsWith"
+                                            FreeTyping
+                                  CustomFilter="@((item, searchValue) => item.ProductName.IndexOf(searchValue, 0, StringComparison.CurrentCultureIgnoreCase) >= 0
+                                                                                                            || item.ProductID.IndexOf(searchValue, 0, StringComparison.CurrentCultureIgnoreCase) >= 0 )"
+                                  SelectedValueChanged="@((item) => {
+                                                                                        var product = products.FirstOrDefault(p => p.ProductID == item);
+                                                                                        if (product != null) {
+                                                                                                                NewDetailEntity.Quantity = NewDetailEntity.Quantity;
+                                                                                                                NewDetailEntity.ProductID = product.ProductID;
+                                                                                                                NewDetailEntity.Price = product.Price;
+
+                                                                                                            }})">
+                    </Autocomplete>
+                </EditTemplate>
+                </DataGridColumn>
+
+                <DataGridColumn Field="@nameof(NewDetailEntity.Quantity)" Caption="@L["Quanity"]" Editable>
+                <EditTemplate>
+                    <NumericPicker Min="1" TValue="int" Value="NewDetailEntity.Quantity" ValueChanged="@Total" />
+                </EditTemplate>
+            </DataGridColumn>
+            <DataGridColumn Field="@nameof(NewDetailEntity.Price)" Caption="@L["Price"]" Editable>
+                <EditTemplate>
+                    <NumericPicker Min="0" TValue="double" @bind-Value="@NewDetailEntity.Price" />
+                </EditTemplate>
+            </DataGridColumn>
+            <DataGridColumn Field="@nameof(NewDetailEntity.ExAmount)" Caption="@L["Total"]" Editable>
+                <EditTemplate>
+                    <NumericPicker Min="0" TValue="double" @bind-Value="@NewDetailEntity.ExAmount" Disabled />
+                </EditTemplate>
+            </DataGridColumn>
+        </DataGridColumns>
+        <ButtonRowTemplate>
+            <Button Color="Color.Success" Clicked="context.NewCommand.Clicked">New</Button>
+        </ButtonRowTemplate>
+    </DataGrid>
+</Validations>*@
+
+             <Validations @ref="@CreateValationRef" Model="@NewDetailEntity" ValidateOnLoad="false">
+                                            <DataGrid TItem="OrderDetailDto"
+                                                        Editable
+                                                        ShowPager
+                                                      EditMode="DataGridEditMode.Inline"
+                                                      CommandMode="DataGridCommandMode.ButtonRow">
+                                                <DataGridColumns>                                                  
+                                                    <DataGridColumn Field="@nameof(NewDetailEntity.OrderID)" Caption="ProductName" Editable>
+                                                        <EditTemplate>
+                                                            <Autocomplete TItem="ProductDto"
+                                                                          TValue="string"
+                                                                          Data="@products"
+                                                                          TextField="@((item) => item?.ProductName)"
+                                                                          ValueField="@((item) => item?.ProductID)"                                                              
+                                                                          Placeholder="Search..."
+                                                                          Filter="AutocompleteFilter.StartsWith"
+                                                                                        FreeTyping
+                                                                          CustomFilter="@((item, searchValue) => item.ProductName.IndexOf(searchValue, 0, StringComparison.CurrentCultureIgnoreCase) >= 0)"
+                                                                          SelectedValueChanged="@((item) => {
+                                                                        var product = products.FirstOrDefault(p => p.ProductID == item);
+                                                                        if (product != null) {
+                                                                                    NewDetailEntity.ProductID = product.ProductID;
+                                                                                    NewDetailEntity.ProductName = product.ProductName;
+                                                                                    NewDetailEntity.Type = product.Type;
+                                                                                    NewDetailEntity.UnitType = product.UnitType;
+                                                                                    NewDetailEntity.Quantity = NewDetailEntity.Quantity;
+                                                                                    NewDetailEntity.Price = product.Price;
+                                                                        }})">
+                                                            </Autocomplete>
+                                                        </EditTemplate>
+                                                        </DataGridColumn>
+                                                        <DataGridColumn Field="@nameof(NewDetailEntity.OrderID)" Caption="Order Number">
+                                                            <DisplayTemplate>
+                                                                <TextEdit @bind-Text="@NewDetailEntity.OrderID"></TextEdit>
+                                                            </DisplayTemplate>
+                                                        </DataGridColumn>
+                                                        <DataGridColumn Field="@nameof(NewDetailEntity.ProductID)" Caption="Product ID">
+                                                            <DisplayTemplate>
+                                                                <TextEdit @bind-Text="@NewDetailEntity.ProductID"></TextEdit>
+                                                            </DisplayTemplate>                                                                                                
+                                                        </DataGridColumn>
+                                                            <DataGridColumn Field="@nameof(NewDetailEntity.ProductName)" Caption="ProductName">
+                                                                <DisplayTemplate>
+                                                                    <TextEdit @bind-Text="@NewDetailEntity.ProductName"></TextEdit>
+                                                                </DisplayTemplate>
+                                                            </DataGridColumn>
+                                                          <DataGridColumn Caption="WarehouseType ">
+                                                            <DisplayTemplate>
+                                                                <Select TValue="WarehouseType" @bind-SelectedValue="@NewDetailEntity.Type">
+                                                                @foreach (int WareHouseTypeValue in Enum.GetValues(typeof(WarehouseType)))
+                                                                {
+                                                                    <SelectItem TValue="WarehouseType" Value="@((WarehouseType) WareHouseTypeValue)">
+                                                                        @L[$"Enum:WarehouseType.{WareHouseTypeValue}"]
+                                                                    </SelectItem>
+                                                                }
+                                                            </Select>
+                                                            </DisplayTemplate>                                                                                                
+                                                                            </DataGridColumn>
+                                                        <DataGridColumn  Caption="UnitType ">
+                                                            <DisplayTemplate>
+                                                                <Select TValue="UnitType" @bind-SelectedValue="@NewDetailEntity.UnitType">
+                                                                    @foreach (int UnitTypeValue in Enum.GetValues(typeof(UnitType)))
+                                                                    {
+                                                                        <SelectItem TValue="UnitType" Value="@((UnitType) UnitTypeValue)">
+                                                    @L[$"Enum:UnitType.{UnitTypeValue}"]
+                                                                        </SelectItem>
+                                                                    }
+                                                                </Select>
+                                                            </DisplayTemplate>
+                                                        </DataGridColumn>
+
+                                    <DataGridColumn Field="@nameof(NewDetailEntity.Quantity)" Caption="Quanity" Editable>
+                                                        <EditTemplate>
+                                                            <NumericPicker  TValue="int" Value="NewDetailEntity.Quantity" ValueChanged="@UpdateTotal" />
+                                                        </EditTemplate>
+                                                    </DataGridColumn>
+                                                    <DataGridColumn Field="@nameof(NewDetailEntity.Price)" Caption="Price" Editable>
+                                                        <EditTemplate>
+                                                            <NumericPicker  TValue="double" @bind-Value="@NewDetailEntity.Price" />
+                                                        </EditTemplate>
+                                                    </DataGridColumn>
+                                                         <DataGridColumn Field="@nameof(NewDetailEntity.ExAmount)" Caption="ExtenedAmount" Editable>
+                                                        <EditTemplate>
+                                                     <NumericPicker TValue="double" @bind-Value="@NewDetailEntity.ExAmount" />
+                                                        </EditTemplate>
+                                                    </DataGridColumn>
+                                                </DataGridColumns>
+                                                <ButtonRowTemplate>
+                                                    <Button Color="Color.Success" Clicked="context.NewCommand.Clicked">New</Button>
+                                                    <Button Color="Color.Link" Clicked="context.ClearFilterCommand.Clicked">Clear Filter</Button>
+                                                </ButtonRowTemplate>
+                                            </DataGrid>
+                                        </Validations>
+      
